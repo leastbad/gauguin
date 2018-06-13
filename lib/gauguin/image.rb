@@ -1,4 +1,4 @@
-require 'rmagick'
+require 'mini_magick'
 require 'forwardable'
 
 module Gauguin
@@ -9,18 +9,13 @@ module Gauguin
 
     def initialize(path = nil)
       return unless path
-
-      list = Magick::ImageList.new(path)
-      self.image = list.first
+      self.image = MiniMagick::Image.open(path)
     end
 
     def self.blank(columns, rows)
-      blank_image = Image.new
-      transparent_white = Magick::Pixel.new(255, 255, 255, Pixel::MAX_TRANSPARENCY)
-      blank_image.image = Magick::Image.new(columns, rows) do
-        self.background_color = transparent_white
-      end
-      blank_image
+      tmp = Tempfile.new(%W[mini_magick_ .jpg])
+      `convert -size #{columns}x#{rows} xc:transparent #{tmp.path}`
+      MiniMagick::Image.new(tmp.path, tmp)
     end
 
     def pixel(magic_pixel)
